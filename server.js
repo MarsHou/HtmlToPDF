@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { logger, requestLogger } = require('./logger');
+const packageInfo = require('./package.json');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +44,20 @@ async function initBrowser() {
     logger.info('🎆 BROWSER INITIALIZED SUCCESSFULLY');
   } catch (error) {
     logger.error('💥 FAILED TO INITIALIZE BROWSER', { error: error.message, stack: error.stack });
+  }
+}
+
+// Restart browser
+async function restartBrowser() {
+  try {
+    logger.info('🔄 RESTARTING BROWSER');
+    if (browser) {
+      await browser.close();
+    }
+    await initBrowser();
+    logger.info('✅ BROWSER RESTARTED SUCCESSFULLY');
+  } catch (error) {
+    logger.error('💥 FAILED TO RESTART BROWSER', { error: error.message, stack: error.stack });
   }
 }
 
@@ -193,6 +208,18 @@ app.post('/api/generate-pdf', async (req, res) => {
       duration: `${duration}ms`,
       requestId
     });
+    
+    // Restart browser on 500 errors to recover from potential browser issues
+    try {
+      logger.info('🔄 RESTARTING BROWSER DUE TO 500 ERROR', { requestId });
+      await restartBrowser();
+    } catch (restartError) {
+      logger.error('💥 FAILED TO RESTART BROWSER AFTER 500 ERROR', { 
+        error: restartError.message,
+        requestId 
+      });
+    }
+    
     res.status(500).json({
       error: 'Failed to generate PDF',
       details: error.message
@@ -210,7 +237,8 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    browser: browser ? 'connected' : 'disconnected'
+    browser: browser ? 'connected' : 'disconnected',
+    version: packageInfo.version
   });
 });
 
