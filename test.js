@@ -12,16 +12,21 @@ async function testHtmlToPdf() {
         <head>
           <title>Test PDF</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
+            body { 
+              font-family: "Noto Sans CJK SC", "WenQuanYi Zen Hei", "Microsoft YaHei", Arial, sans-serif; 
+              margin: 20px; 
+            }
             h1 { color: #333; }
             .content { background: #f5f5f5; padding: 20px; border-radius: 5px; }
           </style>
         </head>
         <body>
-          <h1>HTML to PDF Test</h1>
+          <h1>HTML to PDF 测试</h1>
           <div class="content">
-            <p>This is a test document generated from HTML content.</p>
-            <p>Current time: ${new Date().toLocaleString()}</p>
+            <p>这是一个从HTML内容生成的测试文档。</p>
+            <p>中文字体测试：你好世界！</p>
+            <p>English: This is a test document generated from HTML content.</p>
+            <p>当前时间: ${new Date().toLocaleString()}</p>
           </div>
         </body>
       </html>
